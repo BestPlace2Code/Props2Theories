@@ -1,4 +1,4 @@
-# Props2Theorems
+# Props2Theories
 
 ## Common words about the repository:
 
