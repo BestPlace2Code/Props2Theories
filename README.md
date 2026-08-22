@@ -46,7 +46,7 @@ Look up installation instructions online for your system.
 
 5. We will use my `TacticNames.lean` and `Axioms.lean` files
 
-I generally expect you to use Linux (I use Fedora), although it can usually also be installed on macOS and Windows. However, it is your responsibility to install VS Code, vsrocq, etc.
+I generally expect you to use Linux, although it can usually also be installed on macOS and Windows. However, it is your responsibility to install VS Code and everythin needed for the project.
 
 ## About the choice of fundamentals
 
