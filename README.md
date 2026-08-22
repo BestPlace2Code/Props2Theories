@@ -31,22 +31,32 @@ If a chapters is terminal, we called it topic.
 
 The course is structured in such a way that you usually only need knowledge from previous tasks, along with your creativity and ability to carefully construct proofs.
 
-## Technical instructions:
+## Requirements
+ 
+- [elan](https://github.com/leanprover/elan) — the Lean version manager. It installs the correct Lean and Lake toolchain automatically, based on the `lean-toolchain` file in this repo.
+- [VS Code](https://code.visualstudio.com/)
+- The **lean4** VS Code extension (by leanprover) — this is the only extension you need; it integrates with Lake automatically.
+## Setup
+ 
+1. Install `elan` for your operating system. See the link above for installation instructions (Linux, macOS, and Windows are all supported, though Linux is what I primarily use and test on).
+2. Install VS Code, then install the **lean4** extension from the Extensions marketplace.
+3. Clone this repository and open it in VS Code:
+```
+   git clone <repo-url>
+   cd Props2Theories
+   code .
+```
+4. Open any `.lean` file inside the `Props2Theories/` subdirectory. VS Code's lean4 extension will trigger `elan` to download the correct Lean toolchain the first time — this can take a few minutes, so don't worry if it looks stuck.
+## Project structure
+ 
+All the work happens in the `Props2Theories/` subdirectory. The main files are:
+ 
+- `TacticNames.lean`
+- `Axioms.lean`
+## Notes
 
-The required software to install includes Lean, Vs Code, Lake, Elan
-
-1. Install `VS Code`.
-2. Install the VS Code extension `lake`, `lean`, `elan`
-3. Install `Lean 4` VS Code extension
-
-Look up installation instructions online for your system.
-
-4. The root directory contains `Props2Theories` subdirectory,
-   we will work there
-
-5. We will use my `TacticNames.lean` and `Axioms.lean` files
-
-I generally expect you to use Linux, although it can usually also be installed on macOS and Windows. However, it is your responsibility to install VS Code and everythin needed for the project.
+- Installing VS Code, elan, and the lean4 extension is up to you — these instructions cover the essentials, but if you hit OS-specific issues, check the official installation docs linked above.
+- Development is done on Linux, but Lean 4 also works on macOS and Windows.
 
 ## About the choice of fundamentals
 
