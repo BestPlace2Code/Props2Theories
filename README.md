@@ -51,8 +51,6 @@ The course is structured in such a way that you usually only need knowledge from
  
 All the work happens in the `Props2Theories/` subdirectory. The main files are:
  
-- `TacticNames.lean`
-- `Axioms.lean`
 ## Notes
 
 - Installing VS Code, elan, and the lean4 extension is up to you — these instructions cover the essentials, but if you hit OS-specific issues, check the official installation docs linked above.
