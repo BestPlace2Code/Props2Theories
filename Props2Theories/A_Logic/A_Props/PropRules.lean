@@ -1,7 +1,7 @@
 import Props2Theories.TacticNames
 -- Tactics (Rules) for Propositional Logic
 
--- 1) Proof Context Tactics
+-- 1) Straightforward tactics
 
 example (p q : Prop) (h : p) (_ : q) : p := by
   exact h
@@ -14,7 +14,7 @@ example (p : Prop) (h : p) : p := by
 
 example (p : Prop) (h : p) : p := by
   have h₂ : p := by assumption
-  assumption
+  exact h₂
 
 example (p : Prop) (h : p) : p := by
   have h₂ := h
@@ -79,6 +79,31 @@ example (p q : Prop) (h_pq : p -> q) : p → q := by
   specialize h_pq h_p
   assumption
 
+
+-- 4) Subtheorem tactics
+
+example (p q r: Prop) (hp : p) (hpq : p → q) (hqr : q → r) : r := by
+  have hq : q := by
+    exact hpq hp
+  exact hqr hq
+
+example (p q r: Prop) (hp : p) (hpq : p → q) (hqr : q → r) : r := by
+  have hq : q := hpq hp
+  exact hqr hq
+
+example (p q r: Prop) (hp : p) (hpq : p → q) (hqr : q → r) : r := by
+  let hq : q := hpq hp
+  exact hqr hq
+
+example (p q r: Prop) (hp : p) (hpq : p → q) (hqr : q → r) : r := by
+  suffices hq : q by
+    apply hqr
+    exact hq
+  exact hpq hp
+
+
+-- 5) Application by name
+
 theorem some_name (p q : Prop) (h_pq : p → q) : p → q := by
   intro h_p
   let h_q := h_pq h_p
@@ -89,6 +114,9 @@ example (p q : Prop) (h_pq : p -> q) : p → q := by
 
 example (p q : Prop) (h_pq : p -> q) : p → q := by
   apply (some_name p q h_pq)
+
+
+-- 6) Tactic Flow
 
 example (p q t : Prop) (h_pqt : p → q → t) : p → q → t := by
   intros h_p h_q
@@ -116,7 +144,7 @@ example (p q t : Prop) (h_pqt : p → q → t) : p → q → t := by
   apply h_pqt <;> assumption
 
 
--- 4) Conjunction rules
+-- 7) Conjunction rules
 
 example (p q : Prop) (h_p : p) (h_q : q) : p ∧ q := by
   intro_and <;> assumption
@@ -146,7 +174,7 @@ example (p q : Prop) (h_pq : p ∧ q) : p := by
 example (p q : Prop) (h_pq : p ∧ q) : q := by
   elim_and_ h_pq
 
--- 5) Disjunction rules
+-- 8) Disjunction rules
 
 example (p q : Prop) (h_p : p) : p ∨ q := by
   left
@@ -187,7 +215,7 @@ example (p q r : Prop) (h_pq : p ∨ q) (h_pr : p → r) (h_qr : q → r) : r :=
   assumption
 
 
--- 6) Logical Equivalence rules
+-- 9) Logical Equivalence rules
 
 example (p q : Prop) (h_pq : p → q) (h_qp : q → p) : p ↔ q := by
   intro_iff <;> assumption
@@ -244,7 +272,7 @@ example (p q : Prop) (h_piq : p ↔ q) (h_q : q) : p := by
   assumption
 
 
--- 7) Negation rules
+-- 10) Negation rules
 
 example (p : Prop) (h_pF : p → False) : ¬p := by
   intro_neg h_p
@@ -280,8 +308,22 @@ example (p q : Prop) (h_p : p) (h_np : ¬ p) : q := by
   _elim_f_neg h_np, q, h_q
   assumption
 
+-- 11) Classical By Contradiction Rules
 
--- 8) Equivalence Rewriting
+
+example (p : Prop) (h_npF : ¬p → False) : p := by
+  by_contra_cl h_np
+  exact (h_npF h_np)
+
+example (p : Prop) (h_npF : ¬p → False) : p := by
+  by_contra_cl_
+
+example (p : Prop) (h_npF : ¬p → False) : p := by
+  _by_contra_cl h_npF, h_p
+  assumption
+
+
+-- 12) Equivalence Rewriting
 
 example (P : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
   rewrite [hiff]
@@ -360,22 +402,20 @@ example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q
   rewrite [←hiff] at hpq hqq ⊢
   intro_and_ hpq, hqq
 
--- 9) Classical By Contradiction Rules
+
+-- 13) rw
+
+-- You can't use rw before proving that iff is reflexive (trivial_equivalence)!
+
+example (P: Prop → Prop) (p q : Prop) (h_tri : P q ↔ P q) (hiff : p ↔ q) : P p ↔ P q := by
+  rewrite [hiff]
+  exact h_tri
+
+example (P: Prop → Prop) (p q : Prop) (hiff : p ↔ q) : P p ↔ P q := by
+  rw [hiff]
 
 
-example (p : Prop) (h_npF : ¬p → False) : p := by
-  by_contra_cl h_np
-  exact (h_npF h_np)
-
-example (p : Prop) (h_npF : ¬p → False) : p := by
-  by_contra_cl_
-
-example (p : Prop) (h_npF : ¬p → False) : p := by
-  _by_contra_cl h_npF, h_p
-  assumption
-
-
--- 10) calc structure
+-- 14) calc structure
 
 -- You can't use calc before proving that iff is transitive (iff_transitivity)!
 
@@ -405,15 +445,3 @@ example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔
     _ ↔ q := hpq
     _ ↔ r := hqr
     _ ↔ _ := hrs
-
-
--- 11) rw
-
--- You can't use rw before proving that iff is reflexive (trivial_equivalence)!
-
-example (P: Prop → Prop) (p q : Prop) (h_tri : P q ↔ P q) (hiff : p ↔ q) : P p ↔ P q := by
-  rewrite [hiff]
-  exact h_tri
-
-example (P: Prop → Prop) (p q : Prop) (hiff : p ↔ q) : P p ↔ P q := by
-  rw [hiff]
