@@ -14,6 +14,7 @@ theorem false_impl (p : Prop) : (False → p) ↔ True := sorry
 
 --Idempodent laws
 theorem axiomatic_rule (p : Prop) : p → p := sorry
+-- you can't use rw here:
 theorem trivial_equivalence (p : Prop) : p ↔ p := sorry
 theorem conj_idemp (p : Prop) : p ↔ (p ∧ p) := sorry
 theorem disj_idemp (p : Prop) : p ↔ (p ∨ p) := sorry
@@ -64,10 +65,10 @@ theorem cases_impl_left (p q r : Prop) : ((p ∨ q) → r) ↔ (p → r) ∧ (q 
 -- Syllogism
 theorem syllogism (p q r : Prop) : (p → q) → (q → r) → (p → r) := sorry
 
---Transitivity of equivalence
+--Transitivity of equivalence (you can't use calc until this is proven)
 theorem iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r) := sorry
 
---Congruence laws
+--Congruence laws (you cant' use rewrite until this is proven):
 theorem neg_congr (p q : Prop) : (p ↔ q) → (¬p ↔ ¬q) := sorry
 theorem disj_congr_r (p q r : Prop) : (p ↔ q) → ((p ∨ r) ↔ (q ∨ r)) := sorry
 theorem conj_congr_r (p q r : Prop) : (p ↔ q) → ((p ∧ r) ↔ (q ∧ r)) := sorry

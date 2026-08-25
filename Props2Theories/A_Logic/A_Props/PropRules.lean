@@ -13,28 +13,6 @@ example (p : Prop) (h : p) : p := by
   assumption
 
 example (p : Prop) (h : p) : p := by
-  have h₂ : p := by assumption
-  exact h₂
-
-example (p : Prop) (h : p) : p := by
-  have h₂ := h
-  assumption
-
-example (p : Prop) (h : p) : p := by
-  let h₂ := h
-  assumption
-
-example (p : Prop) (h : p) : p := by
-  suffices h₂ : p by
-    exact h
-  assumption
-
-example (p : Prop) (h : p) : p := by
-  let h₂ := h
-  clear h₂
-  exact h
-
-example (p : Prop) (h : p) : p := by
   try intro
   try intro_and
   try assumption
@@ -100,6 +78,11 @@ example (p q r: Prop) (hp : p) (hpq : p → q) (hqr : q → r) : r := by
     apply hqr
     exact hq
   exact hpq hp
+
+example (p : Prop) (h : p) : p := by
+  let h₂ := h
+  clear h₂
+  exact h
 
 
 -- 5) Application by name
