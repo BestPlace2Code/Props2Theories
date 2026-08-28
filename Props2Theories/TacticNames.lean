@@ -1,8 +1,17 @@
 import Lean
-open Lean Elab Tactic Meta PrettyPrinter
+open Lean Elab Tactic Meta PrettyPrinter Parser.Command Elab.Command
 namespace Props2Theories
 
 
+
+syntax (name := lemma) declModifiers
+  group("lemma " declId ppIndent(declSig) declVal) : command
+
+@[macro «lemma»] def expandLemma : Macro := fun stx => do
+  let stx := stx.modifyArg 1 fun stx =>
+    let stx := stx.modifyArg 0 (mkAtomFrom · "theorem")
+    stx.setKind ``Lean.Parser.Command.theorem
+  return stx.setKind ``Lean.Parser.Command.declaration
 
 
 elab "intro_true" : tactic => do

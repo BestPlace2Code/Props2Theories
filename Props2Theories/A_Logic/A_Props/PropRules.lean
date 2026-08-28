@@ -18,6 +18,7 @@ example (p : Prop) (h : p) : p := by
   try assumption
 
 
+
 -- 2) True/False tactics
 
 example : True := by
@@ -285,6 +286,10 @@ example (p : Prop) (h_p : p) (h_np : ¬p) : False := by
   assumption
 
 example (p q : Prop) (h_p : p) (h_np : ¬p) : q := by
+  elim_false
+  elim_neg_ h_np
+
+example (p q : Prop) (h_p : p) (h_np : ¬p) : q := by
   elim_f_neg h_np
 
 example (p q : Prop) (h_p : p) (h_np : ¬ p) : q := by
@@ -306,64 +311,183 @@ example (p : Prop) (h_npF : ¬p → False) : p := by
   assumption
 
 
+-- 12) Instance inferring
+
+-- another way to prove something having tedious long,
+-- but simple and straightforward on each step
+-- is through instance inferring techinque
+-- for example:
+
+-- this means a structure with statements (here with one statement: eqv)
+
+lemma neg_congr (p q : Prop) : (p ↔ q) → (¬p ↔ ¬q) := sorry
+lemma disj_congr_r (p q r : Prop) : (p ↔ q) → ((p ∨ r) ↔ (q ∨ r)) := sorry
+lemma conj_congr_r (p q r : Prop) : (p ↔ q) → ((p ∧ r) ↔ (q ∧ r)) := sorry
+lemma disj_congr_l (p q r : Prop) : (p ↔ q) → ((r ∨ p) ↔ (r ∨ q)) := sorry
+lemma conj_congr_l (p q r : Prop) : (p ↔ q) → ((r ∧ p) ↔ (r ∧ q)) := sorry
+lemma impl_congr_right (p q r : Prop) : (p ↔ q) → ((p → r) ↔ (q → r)) := sorry
+lemma impl_congr_left (p q r : Prop) : (p ↔ q) → ((r → p) ↔ (r → q)) := sorry
+lemma iff_congr_right (p q r : Prop) : (p ↔ q) → ((p ↔ r) ↔ (q ↔ r)) := sorry
+lemma iff_congr_left (p q r : Prop) : (p ↔ q) → ((r ↔ p) ↔ (r ↔ q)) := sorry
+
+-- at first, it looks like I am thinking
+example (p q r s : Prop) (h : p ↔ q) : ((¬p ∨ r) → s) ↔ ((¬q ∨ r) → s) := by
+  apply impl_congr_right
+  apply disj_congr_r
+  apply neg_congr
+  assumption
+
+-- it can be done with a stupid algorithm
+example (p q r s : Prop) (h : p ↔ q) : ((¬p ∨ r) → s) ↔ ((¬q ∨ r) → s) := by
+  try assumption
+  try apply neg_congr
+  try apply disj_congr_r
+  try apply conj_congr_r
+  try apply disj_congr_l
+  try apply conj_congr_r
+  try apply impl_congr_right
+
+  try assumption
+  try apply neg_congr
+  try apply disj_congr_r
+
+  try assumption
+  try apply neg_congr
+
+  try assumption
+
+
+
+
+class MyIff (P Q : Prop) : Prop where
+  eqv : P ↔ Q
+
+instance neg_congr_inst (p q : Prop) [hpq : MyIff p q] :
+    MyIff (¬p) (¬q) := ⟨ by
+        apply neg_congr
+        exact hpq.eqv
+    ⟩
+
+
+instance and_left_congr_inst (p : Prop) (q s : Prop) [hqs : MyIff q s] :
+    MyIff (p ∧ q) (p ∧ s) := ⟨ by
+        apply conj_congr_l
+        exact hqs.eqv
+    ⟩
+
+instance and_right_congr_inst (p s : Prop) (q : Prop) [hps : MyIff p s] :
+    MyIff (p ∧ q) (s ∧ q) := ⟨by
+        apply conj_congr_r
+        exact hps.eqv
+    ⟩
+
+instance or_left_congr_inst (p : Prop) (q s : Prop) [hqs : MyIff q s] :
+    MyIff (p ∨ q) (p ∨ s) := ⟨ by
+        apply disj_congr_l
+        exact hqs.eqv
+  ⟩
+
+instance or_right_congr_inst (p s : Prop) (q : Prop) [hps : MyIff p s] :
+    MyIff (p ∨ q) (s ∨ q) := ⟨by
+        apply disj_congr_r
+        exact hps.eqv
+  ⟩
+
+
+instance impl_left_congr_inst (p : Prop) (q s : Prop) [hqs : MyIff q s] :
+    MyIff (p → q) (p → s) := ⟨ by
+        apply impl_congr_left
+        exact hqs.eqv
+  ⟩
+
+instance impl_right_congr_inst (p s : Prop) (q : Prop) [hps : MyIff p s] :
+    MyIff (p → q) (s → q) := ⟨by
+        apply impl_congr_right
+        exact hps.eqv
+  ⟩
+
+instance iff_left_congr_inst (p : Prop) (q s : Prop) [hqs : MyIff q s] :
+    MyIff (p ↔ q) (p ↔ s) := ⟨by
+        apply iff_congr_left
+        exact hqs.eqv
+  ⟩
+
+instance iff_right_congr_inst (p s : Prop) (q : Prop) [hps : MyIff p s] :
+    MyIff (p ↔ q) (s ↔ q) := ⟨by
+        apply iff_congr_right
+        exact hps.eqv
+  ⟩
+
+
+example (p q r s : Prop) (h : p ↔ q) : ((¬p ∨ r) → s) ↔ ((¬q ∨ r) → s) := by
+  have h₂ : MyIff p q := ⟨by exact h⟩
+  have h₃ : MyIff ((¬p ∨ r) → s) ((¬q ∨ r) → s) := by
+    infer_instance
+  exact h₃.eqv
+
+
 -- 12) Equivalence Rewriting
 
-example (P : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
+axiom P (st : Prop) : Prop
+axiom Q (st : Prop) : Prop
+axiom S (st : Prop) : Prop
+
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
   rewrite [hiff]
   assumption
 
-example (P : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpp : P p) : P q := by
+example (p q : Prop) (hiff : p ↔ q) (hpp : P p) : P q := by
   rewrite [← hiff]
   assumption
 
-example (P : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpp : P p) : P q := by
+example (p q : Prop) (hiff : p ↔ q) (hpp : P p) : P q := by
   rewrite [hiff] at hpp
   assumption
 
-example (P : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
   rewrite [← hiff] at hpq
   assumption
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
+example (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
   rewrite [hiff] at hqp
   rewrite [hiff] at hpp
   intro_and_ hpp, hqp
 
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
+example (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
   rewrite [hiff] at *
   intro_and_ hpp, hqp
 
-example  (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) : P p ∧ Q p := by
+example  (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) : P p ∧ Q p := by
   rewrite [hiff] at ⊢
   intro_and_ hpq, hqq
 
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : P p ∧ Q p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : P p ∧ Q p := by
   conv =>
     lhs
     rewrite [hiff]
   intro_and_ hpq, hqq
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : Q p ∧ P p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : Q p ∧ P p := by
   conv =>
     rhs
     rewrite [hiff]
   intro_and_ hqq, hpq
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : P p ∧ Q p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : P p ∧ Q p := by
   conv =>
     arg 1
     rewrite [hiff]
   intro_and_ hpq, hqq
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : Q p ∧ P p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q p) : Q p ∧ P p := by
   conv =>
     arg 2
     rewrite [hiff]
   intro_and_ hqq, hpq
 
-example (P Q S : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q ∧ S q) (hqq : Q p) : P p ∧ Q p ∧ S q := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q ∧ S q) (hqq : Q p) : P p ∧ Q p ∧ S q := by
   conv at hpq =>
     arg 1
     rewrite [← hiff]
@@ -373,58 +497,76 @@ example (P Q S : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q ∧ S q
   intro_and <;> assumption
 
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) : P p ∧ Q p := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) : P p ∧ Q p := by
   rewrite [←hiff] at hpq hqq
   intro_and_ hpq, hqq
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
+example (p q : Prop) (hiff : p ↔ q) (hpp : P p) (hqp : Q p) : P q ∧ Q q := by
   rewrite [hiff] at hpp hqp
   intro_and_ hpp, hqp
 
-example (P Q : Prop → Prop) (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) (_ : q) : P q ∧ Q q := by
+example (p q : Prop) (hiff : p ↔ q) (hpq : P q) (hqq : Q q) (_ : q) : P q ∧ Q q := by
   rewrite [←hiff] at hpq hqq ⊢
   intro_and_ hpq, hqq
 
 
 -- 13) rw
 
+lemma trivial_equivalence (p : Prop) : p ↔ p := sorry
+
+example (p q : Prop) (hiff : p ↔ q) : P p ↔ P q := by
+  rewrite [hiff]
+  apply trivial_equivalence
+
+-- LEAN 4 knows
 -- You can't use rw before proving that iff is reflexive (trivial_equivalence)!
 
-example (P: Prop → Prop) (p q : Prop) (h_tri : P q ↔ P q) (hiff : p ↔ q) : P p ↔ P q := by
-  rewrite [hiff]
-  exact h_tri
-
-example (P: Prop → Prop) (p q : Prop) (hiff : p ↔ q) : P p ↔ P q := by
+example (p q : Prop) (hiff : p ↔ q) : P p ↔ P q := by
   rw [hiff]
 
 
 -- 14) calc structure
 
--- You can't use calc before proving that iff is transitive (iff_transitivity)!
+-- When you already proved the transitivity:
 
--- When you already proved it:
--- Instead of using transitivity explicitly
-example (p q r s : Prop) (h₁ : (p ↔ r) → (r ↔ s) → (p ↔ s)) (h₂ : (p ↔ q) → (q ↔ r) → (p ↔ r)) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
-  apply h₁ <;> try assumption
-  apply h₂ <;> assumption
+theorem iff_transitivity (p q r : Prop) : (p ↔ q) → (q ↔ r) → (p ↔ r) := sorry
+
+
+example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
+  apply iff_transitivity p r s <;> try assumption
+  apply iff_transitivity p q r <;> assumption
 
 
 -- you can use calc tactic
 -- Which looks more elegant
-example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
-  calc
-    p ↔ q := hpq
-    q ↔ r := hqr
-    r ↔ s := hrs
+
+def R (p q : Prop) : Prop := p ↔ q
+
+instance : Trans R R R where
+  trans := @iff_transitivity
 
 example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
   calc
-    p ↔ q := hpq
-    _ ↔ r := hqr
-    _ ↔ s := hrs
+    R p q := hpq
+    R q r := hqr
+    R r s := hrs
 
 example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
   calc
-    _ ↔ q := hpq
-    _ ↔ r := hqr
+    R p _ := hpq
+    R _  r := hqr
+    R _ s := hrs
+
+example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
+  calc
+    R _ _ := hpq
+    R _  r := hqr
+    R _ _ := hrs
+
+-- LEAN 4 knows, ↔ is transitive
+-- You can't use calc before proving that iff is transitive (iff_transitivity)!
+example (p q r s : Prop) (hpq : p ↔ q) (hqr : q ↔ r) (hrs : r ↔ s) : p ↔ s := by
+  calc
+    _ ↔ _ := hpq
+    _  ↔ r := hqr
     _ ↔ _ := hrs
