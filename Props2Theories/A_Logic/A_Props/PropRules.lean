@@ -428,9 +428,9 @@ example (p q r s : Prop) (h : p ↔ q) : ((¬p ∨ r) → s) ↔ ((¬q ∨ r) �
 
 -- 12) Equivalence Rewriting
 
-axiom P (st : Prop) : Prop
-axiom Q (st : Prop) : Prop
-axiom S (st : Prop) : Prop
+def P (st : Prop) : Prop := sorry
+def Q (st : Prop) : Prop := sorry
+def S (st : Prop) : Prop := sorry
 
 example (p q : Prop) (hiff : p ↔ q) (hpq : P q) : P p := by
   rewrite [hiff]
